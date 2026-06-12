@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Neon To-Do — Dark</title>
+    <style>
+      :root{
+        --bg:#121214; /* dark charcoal */
+        --panel:#161618;
+        --muted:#9aa0a6;
+        --neon-blue:#00d1ff;
+        --neon-green:#39ff14;
+        --accent:var(--neon-blue);
+      }
+      *{box-sizing:border-box}
+      html,body{height:100%}
+      body{
+        margin:0;
+        font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+        background:linear-gradient(180deg,var(--bg),#0b0b0c);
+        color:#e6eef6;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        padding:32px;
+      }
+      .app{
+        width:100%;
+        max-width:760px;
+        background:linear-gradient(135deg, rgba(255,255,255,0.02), rgba(0,0,0,0.15));
+        border:1px solid rgba(255,255,255,0.03);
+        padding:24px;
+        border-radius:12px;
+        /* base shadow + subtle neon-green outer glow */
+        box-shadow:
+          0 8px 30px rgba(0,0,0,0.6),
+          0 0 30px rgba(0,0,0,0.4) inset,
+          0 0 40px rgba(57,255,20,0.04),
+          0 14px 60px rgba(57,255,20,0.03);
+      }
+      header{
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:16px;
+        margin-bottom:18px;
+      }
+      h1{font-size:20px;margin:0;color:var(--accent);text-shadow:0 0 12px rgba(0,0,0,0.6)}
+      .subtitle{font-size:12px;color:var(--muted)}
+      .timewrap{margin-top:8px}
+      .clock{font-weight:700;color:var(--accent);font-size:18px;letter-spacing:0.6px;text-shadow:0 0 14px rgba(0,209,255,0.12)}
+      .date{font-size:12px;color:var(--muted);margin-top:2px}
+
+      .controls{
+        display:flex;gap:12px;align-items:center;width:100%;
+      }
+      .input-wrap{flex:1;display:flex;gap:8px}
+      input.new-task{
+        flex:1;padding:12px 14px;border-radius:10px;border:1px solid rgba(255,255,255,0.03);
+        background:linear-gradient(180deg, rgba(255,255,255,0.01), rgba(0,0,0,0.25));
+        color:inherit;outline:none;font-size:15px;
+        box-shadow:0 2px 10px rgba(0,0,0,0.6) inset;
+      }
+      input.new-task::placeholder{color:rgba(230,238,246,0.45)}
+
+      button.add{
+        background:linear-gradient(180deg,var(--accent), rgba(0,0,0,0.1));
+        color:#071017;border:none;padding:12px 16px;border-radius:12px;font-weight:600;cursor:pointer;
+        box-shadow:0 6px 30px rgba(0,209,255,0.12), 0 0 18px rgba(0,209,255,0.22);
+        position:relative;transition:transform .14s ease, box-shadow .14s ease;
+      }
+      button.add:before{
+        content:'';position:absolute;inset:-6px;border-radius:16px;
+        background:transparent;box-shadow:0 0 32px rgba(0,209,255,0.14);
+        filter:blur(6px);
+        opacity:0.9;
+      }
+      button.add:hover{transform:translateY(-2px);box-shadow:0 10px 40px rgba(0,209,255,0.18),0 0 28px rgba(0,209,255,0.28)}
+
+      ul.tasks{list-style:none;padding:0;margin:8px 0 0 0;display:flex;flex-direction:column;gap:14px}
+      li.task{
+        display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-radius:12px;
+        background:linear-gradient(180deg, rgba(255,255,255,0.02), rgba(6,8,12,0.45));
+        border:1px solid rgba(255,255,255,0.04);
+        box-shadow:0 10px 30px rgba(2,6,23,0.7), 0 6px 20px rgba(0,0,0,0.6);
+        transform-origin:left center;animation:fadeIn .18s ease;transition:transform .18s ease,box-shadow .18s ease;position:relative;overflow:visible
+      }
+      li.task::after{
+        content:'';position:absolute;inset:0;border-radius:12px;box-shadow:0 0 30px rgba(0,209,255,0.05);pointer-events:none;
+      }
+      li.task:hover{transform:translateY(-8px);box-shadow:0 24px 48px rgba(2,6,23,0.75),0 12px 36px rgba(0,209,255,0.06)}
+      li.task .text{color:#dfeafe;word-break:break-word;max-width:76%}
+      .task-checkbox{width:18px;height:18px;border-radius:4px;cursor:pointer;border:1px solid rgba(255,255,255,0.06);background:linear-gradient(180deg,rgba(0,0,0,0.2),rgba(255,255,255,0.02));outline:none}
+      .task.completed{opacity:0.85}
+      .task.completed .text{color:rgba(223,234,254,0.6);text-decoration:line-through}
+      .task.completed{box-shadow:0 10px 30px rgba(2,6,23,0.6),0 6px 28px rgba(57,255,20,0.03)}
+      .actions{display:flex;gap:8px;align-items:center}
+      button.delete{
+        background:rgba(255,255,255,0.02);border:1px solid rgba(57,255,20,0.12);color:var(--neon-green);padding:8px 10px;border-radius:10px;cursor:pointer;
+        box-shadow:0 6px 22px rgba(57,255,20,0.03),0 0 10px rgba(57,255,20,0.04);
+      }
+      button.delete:hover{transform:translateY(-2px);box-shadow:0 14px 34px rgba(57,255,20,0.06),0 0 16px rgba(57,255,20,0.08)}
+      .empty{padding:36px;text-align:center;color:var(--muted);border-radius:8px;border:1px dashed rgba(255,255,255,0.02)}
+
+      @keyframes fadeIn{from{opacity:0;transform:translateY(6px) scale(.998)}to{opacity:1;transform:none}}
+
+      /* small screens */
+      @media (max-width:520px){
+        body{padding:18px}
+        .app{padding:16px}
+        h1{font-size:18px}
+        button.add{padding:10px 12px}
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app" role="application" aria-label="Neon To-Do App">
+      <header>
+        <div>
+          <h1>Neon To-Do</h1>
+          <div class="subtitle">Dark charcoal background • Neon highlights • Local persistence</div>
+          <div class="timewrap" aria-hidden="false">
+            <div id="clock" class="clock">00:00:00 AM</div>
+            <div id="date" class="date">Loading date...</div>
+          </div>
+        </div>
+        <div style="text-align:right;color:var(--muted);font-size:12px">Saved locally</div>
+      </header>
+
+      <section class="controls">
+        <div class="input-wrap">
+          <input id="taskInput" class="new-task" placeholder="Add a new task..." aria-label="New task" autofocus />
+        </div>
+        <button id="addBtn" class="add" aria-label="Add task">Add Task</button>
+      </section>
+
+      <main>
+        <ul id="tasks" class="tasks" aria-live="polite"></ul>
+        <div id="empty" class="empty" style="display:none">No tasks yet — add something neon!</div>
+      </main>
+      <footer style="margin-top:12px;color:var(--muted);font-size:12px;text-align:center">Tip: Press Enter to add a task</footer>
+    </div>
+
+    <script>
+      const STORAGE_KEY = 'todo.tasks';
+
+      function loadTasks(){
+        try{
+          const raw = localStorage.getItem(STORAGE_KEY);
+          return raw? JSON.parse(raw) : [];
+        }catch(e){
+          console.error('Failed parsing tasks',e);
+          return [];
+        }
+      }
+      function saveTasks(tasks){
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(tasks));
+      }
+
+      const tasksEl = document.getElementById('tasks');
+      const emptyEl = document.getElementById('empty');
+      const input = document.getElementById('taskInput');
+      const addBtn = document.getElementById('addBtn');
+
+      let tasks = loadTasks();
+
+      function renderTasks(){
+        tasksEl.innerHTML = '';
+        if(!tasks.length){
+          emptyEl.style.display = 'block';
+          return;
+        }
+        emptyEl.style.display = 'none';
+          tasks.forEach((t, i)=>{
+            const li = document.createElement('li');
+            li.className = 'task';
+            if(t.completed) li.classList.add('completed');
+
+            const span = document.createElement('div');
+            span.className = 'text';
+            span.textContent = t.text;
+
+            const actions = document.createElement('div');
+            actions.className = 'actions';
+
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.className = 'task-checkbox';
+            checkbox.setAttribute('aria-label','Mark task complete');
+            checkbox.checked = !!t.completed;
+            checkbox.addEventListener('change', ()=>{
+              tasks[i].completed = checkbox.checked;
+              saveTasks(tasks);
+              renderTasks();
+            });
+
+            const del = document.createElement('button');
+            del.className = 'delete';
+            del.setAttribute('aria-label','Delete task');
+            del.innerHTML = 'Delete';
+            del.addEventListener('click', ()=>{
+              deleteTask(i);
+            });
+
+            actions.appendChild(checkbox);
+            actions.appendChild(del);
+            li.appendChild(span);
+            li.appendChild(actions);
+            tasksEl.appendChild(li);
+          });
+      }
+
+      function addTask(text){
+        const trimmed = text.trim();
+        if(!trimmed) return;
+        tasks.unshift({text:trimmed, created:Date.now(), completed:false});
+        saveTasks(tasks);
+        renderTasks();
+      }
+
+      function deleteTask(index){
+        tasks.splice(index,1);
+        saveTasks(tasks);
+        renderTasks();
+      }
+
+      addBtn.addEventListener('click', ()=>{
+        addTask(input.value);
+        input.value = '';
+        input.focus();
+      });
+
+      input.addEventListener('keydown', (e)=>{
+        if(e.key === 'Enter'){
+          addBtn.click();
+        }
+      });
+
+      // initial render
+      renderTasks();
+      // Clock & date
+      function pad(n){return n<10? '0'+n : n}
+      function formatDate(d){
+        const opts = { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' };
+        return d.toLocaleDateString(undefined, opts);
+      }
+      function updateClock(){
+        const now = new Date();
+        let hrs = now.getHours();
+        const ampm = hrs >= 12 ? 'PM' : 'AM';
+        hrs = hrs % 12; hrs = hrs ? hrs : 12; // 0 -> 12
+        const mins = pad(now.getMinutes());
+        const secs = pad(now.getSeconds());
+        const timeStr = `${pad(hrs)}:${mins}:${secs} ${ampm}`;
+        const clockEl = document.getElementById('clock');
+        const dateEl = document.getElementById('date');
+        if(clockEl) clockEl.textContent = timeStr;
+        if(dateEl) dateEl.textContent = formatDate(now);
+      }
+      updateClock();
+      setInterval(updateClock, 1000);
+    </script>
+  </body>
+</html>
